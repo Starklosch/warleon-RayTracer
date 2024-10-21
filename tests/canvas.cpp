@@ -1,8 +1,8 @@
-#include <gtest/gtest.h>
 #include <Canvas.hpp>
+#include <gtest/gtest.h>
 
 using namespace war;
-TEST(CANVAS,exportImage){
-	Canvas canvas(255,255);
-	canvas.exportImage("render.png");
+TEST(CANVAS, exportImage) {
+  Canvas canvas(255, 255);
+  canvas.exportImage("render.png");
 }

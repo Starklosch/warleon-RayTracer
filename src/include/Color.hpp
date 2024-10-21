@@ -1,29 +1,26 @@
 #pragma once
-#include <common.hpp>
 #include <algorithm>
+#include <common.hpp>
 
-namespace war{
-typedef struct Color{
-    unsigned char r; // Red component
-    unsigned char g; // Green component
-    unsigned char b; // Blue component
-    unsigned char a; // Alpha component
+namespace war {
+typedef struct Color {
+  unsigned char r; // Red component
+  unsigned char g; // Green component
+  unsigned char b; // Blue component
+  unsigned char a; // Alpha component
 
-    // Constructor to initialize the color
-    Color(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha = 255)
-        : r(red), g(green), b(blue), a(alpha) {}
+  // Constructor to initialize the color
+  Color(unsigned char red, unsigned char green, unsigned char blue,
+        unsigned char alpha = 255)
+      : r(red), g(green), b(blue), a(alpha) {}
 
-    Color(const Color& other)
-        : r(other.r), g(other.g), b(other.b), a(other.a) {}
+  Color(const Color &other) : r(other.r), g(other.g), b(other.b), a(other.a) {}
 
-    Color operator*(vec_t intensity){
-        return Color(
-           std::clamp(r *int(intensity.x),0,255),
-           std::clamp(g *int(intensity.y),0,255),
-           std::clamp(b *int(intensity.z),0,255),
-           a
-        );
-    }
+  Color operator*(vec_t intensity) {
+    return Color(std::clamp(r * int(intensity.x), 0, 255),
+                 std::clamp(g * int(intensity.y), 0, 255),
+                 std::clamp(b * int(intensity.z), 0, 255), a);
+  }
 
-}color_t;
-};
+} color_t;
+}; // namespace war
