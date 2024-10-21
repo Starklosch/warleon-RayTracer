@@ -17,8 +17,10 @@ public:
 	const point_t min, max;
 	const vec_t size;
 	const index_t dimensions;
+	const static bucket_t defaulBucket;
 
 	Grid(const point_t& min,const point_t& max,const index_t& dimensions);
+	Grid(const point_t& min,const point_t& max,const index_t&& dimensions);
 	bucket_t& operator[](const index_t& i);
 	const bucket_t& operator[](const index_t& i) const;
 	index_t worldToGrid(const point_t& p);
@@ -38,3 +40,5 @@ public:
 	Iterator end();
 };
 };
+#include <Grid.ipp>
+

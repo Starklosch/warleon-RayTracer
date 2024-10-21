@@ -8,6 +8,10 @@ Grid<T>::Grid(const point_t& min,const point_t& max,const index_t& dimensions):
 	min(min),max(max),dimensions(dimensions),size(max-min){}
 
 template<class T>
+Grid<T>::Grid(const point_t& min,const point_t& max,const index_t&& dimensions):
+	min(min),max(max),dimensions(dimensions),size(max-min){}
+
+template<class T>
 typename Grid<T>::bucket_t& Grid<T>::operator[](const index_t& i){
 	const size_t i1d = i[0]*dimensions[0]*dimensions[1] + i[1]*dimensions[1] + i[2];
 	if(data.find(i1d)==data.end())data[i1d];//default init cell
@@ -17,7 +21,7 @@ typename Grid<T>::bucket_t& Grid<T>::operator[](const index_t& i){
 template<class T>
 const typename Grid<T>::bucket_t& Grid<T>::operator[](const index_t& i)const {
 	const size_t i1d = i[0]*dimensions[0]*dimensions[1] + i[1]*dimensions[1] + i[2];
-	if(data.find(i1d)==data.end())data[i1d];//default init cell
+	if(data.find(i1d)==data.end())return Grid<T>::defaultBucket;
 	return data[i1d];
 }
 
