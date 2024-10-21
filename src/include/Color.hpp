@@ -1,5 +1,5 @@
 #pragma once
-#include <types.hpp>
+#include <common.hpp>
 #include <algorithm>
 
 namespace war{
