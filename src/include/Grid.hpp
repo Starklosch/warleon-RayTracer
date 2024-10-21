@@ -29,13 +29,14 @@ public:
 		Grid<T>* grid;
 		index_t current;
 
+	public:
 		Iterator(Grid<T>* g,const index_t& curr);
 		Iterator& operator++(int);
 		bucket_t& operator*();
 		bucket_t* operator->();
+		bool operator==(const Iterator& other)const;
 		bool operator!=(const Iterator& other)const;
 	};
-
 	Iterator begin(const Ray& ray);
 	Iterator end();
 };

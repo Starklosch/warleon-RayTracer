@@ -62,8 +62,12 @@ typename Grid<T>::bucket_t* Grid<T>::Iterator::operator->(){
 }
 
 template<class T>
+bool Grid<T>::Iterator::operator==(const Iterator& other)const {
+	return this->grid == other.grid && this->current == other.current;
+}
+template<class T>
 bool Grid<T>::Iterator::operator!=(const Iterator& other)const {
-	return this->grid != other.grid || this->current != other.current;
+	return !(*this == other);
 }
 };
 
