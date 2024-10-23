@@ -1,4 +1,5 @@
 #pragma once
+
 #include <glm/glm.hpp>
 #include <id.hpp>
 #include <limits>
@@ -15,4 +16,8 @@ typedef ID::type id_t;
 
 const scalar_t EPSILON = std::numeric_limits<scalar_t>::epsilon();
 const ID IDgenerator;
+
+scalar_t min(const vec_t &vec);
+scalar_t max(const vec_t &vec);
+
 }; // namespace war

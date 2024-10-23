@@ -29,6 +29,7 @@ public:
     index_t current;
     point_t acc;
     vec_t diff;
+    ivec_t signs;
 
   public:
     Iterator(Grid<T> *g, const index_t &curr);

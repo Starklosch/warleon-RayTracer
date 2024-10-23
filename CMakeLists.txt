@@ -51,3 +51,13 @@ target_link_libraries(mytests glm)
 target_link_libraries(mytests stb_image_write)
 include(GoogleTest)
 gtest_discover_tests(mytests)
+
+
+
+# CREATE FORMAT COMMAND
+file(GLOB_RECURSE SRC_FILES "src/**.[chi]pp" "tests/**.[chi]pp")
+add_custom_target(format
+	COMMAND clang-format  -i ${SRC_FILES}
+    WORKING_DIRECTORY 
+    COMMENT "Formatting source and test files with clang-format"
+)
