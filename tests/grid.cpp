@@ -33,7 +33,7 @@ TEST(GRID_ITERATOR, begin_cell) {
   //	const auto it8 = grid.begin(ray8);
   const grid_t::index_t i = {0, 0, 0};
   const grid_t::index_t i2 = {0, 0, 99};
-  const grid_t::index_t i3 = {0, 100, 0};
+  const grid_t::index_t i3 = {0, 99, 0};
   //	const grid_t::index_t i4 = {100,0,0};
   //	const grid_t::index_t i5 = {100,100,0};
   //	const grid_t::index_t i6 = {1,100,100};
