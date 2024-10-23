@@ -11,5 +11,6 @@ public:
 
   Ray(const point_t &&o, const vec_t &&d);
   Ray(const point_t &o, const vec_t &d);
+  vec_t at(scalar_t t) const;
 };
 }; // namespace war

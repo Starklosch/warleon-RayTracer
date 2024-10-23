@@ -13,7 +13,7 @@ Grid<T>::Grid(const point_t &min, const point_t &max,
     : min(min), max(max), dimensions(dimensions), size(max - min) {}
 
 template <class T>
-typename Grid<T>::bucket_t &Grid<T>::operator[](const index_t &i) {
+typename Grid<T>::bucket_t &Grid<T>::operator[](const index_t &i) const{
   const size_t i1d =
       i[0] * dimensions[0] * dimensions[1] + i[1] * dimensions[1] + i[2];
   if (data.find(i1d) == data.end())
@@ -21,17 +21,9 @@ typename Grid<T>::bucket_t &Grid<T>::operator[](const index_t &i) {
   return data[i1d];
 }
 
-template <class T>
-const typename Grid<T>::bucket_t &Grid<T>::operator[](const index_t &i) const {
-  const size_t i1d =
-      i[0] * dimensions[0] * dimensions[1] + i[1] * dimensions[1] + i[2];
-  if (data.find(i1d) == data.end())
-    return Grid<T>::defaultBucket;
-  return data[i1d];
-}
 
-template <class T> typename Grid<T>::Iterator Grid<T>::begin(const Ray &ray) {
-  // check if ray origin is within the grid
+template <class T> typename Grid<T>::Iterator Grid<T>::begin(const Ray &ray) const{
+  // check if ray origin is inside the grid
   const index_t index = worldToGrid(ray.O);
   bool bounded = true;
   for (size_t d = 0; d < index.size(); d++) {
@@ -39,19 +31,28 @@ template <class T> typename Grid<T>::Iterator Grid<T>::begin(const Ray &ray) {
   }
   if (bounded)
     return Iterator(const_cast<Grid<T> *>(this), index);
-  // test for ray vs grid AABB intersection
 
-  // return end if no intersection occurs
+  // test for ray vs grid AABB intersection
+  // just gotta eval the closest hit since the case of the origin beign inside
+  // the box is already covered
+  vec_t tmin = (min - ray.O) / ray.D;
+  vec_t tmax = (max - ray.O) / ray.D;
+  vec_t topt = glm::min(tmin, vec_t(tmax.y, tmax.z, tmax.x));
+  scalar_t t = glm::max(glm::max(topt.x, topt.y), topt.z);
+  if (t >= 0)
+    return Iterator(const_cast<Grid<T> *>(this), worldToGrid(ray.at(t)));
+
+  // return end() if no intersection occurs
   return end();
 }
 
-template <class T> typename Grid<T>::Iterator Grid<T>::end() {
+template <class T> typename Grid<T>::Iterator Grid<T>::end() const{
   size_t maxi = std::numeric_limits<size_t>::max();
   return Iterator(nullptr, {maxi, maxi, maxi});
 }
 
 template <class T>
-typename Grid<T>::index_t Grid<T>::worldToGrid(const point_t &p) {
+typename Grid<T>::index_t Grid<T>::worldToGrid(const point_t &p) const{
   const auto wi = (p - min) / size;
   return {size_t(wi.x), size_t(wi.y), size_t(wi.z)};
 }
@@ -65,11 +66,11 @@ typename Grid<T>::Iterator &Grid<T>::Iterator::operator++(int) {
   // TODO IMPLEMENT
 }
 
-template <class T> typename Grid<T>::bucket_t &Grid<T>::Iterator::operator*() {
+template <class T> typename Grid<T>::bucket_t &Grid<T>::Iterator::operator*() const{
   return (*grid)[current];
 }
 
-template <class T> typename Grid<T>::bucket_t *Grid<T>::Iterator::operator->() {
+template <class T> typename Grid<T>::bucket_t *Grid<T>::Iterator::operator->() const{
   return &(*grid)[current];
 }
 
