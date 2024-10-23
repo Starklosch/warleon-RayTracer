@@ -9,7 +9,8 @@ namespace war {
 template <class T> class Grid {
 public:
   typedef std::vector<T> bucket_t;
-  typedef std::array<size_t, 3> index_t;
+  // typedef std::array<size_t, 3> index_t;
+  typedef glm::tvec3<size_t> index_t;
   const point_t min, max;
   const vec_t size;
   const index_t dimensions;
@@ -20,23 +21,28 @@ public:
   index_t worldToGrid(const point_t &p) const;
 
   class Iterator {
-    Grid<T> *grid;
-    index_t current;
-    point_t acc;
-    vec_t diff;
-    ivec_t signs;
-
   public:
-    Iterator(Grid<T> *g, const index_t &curr);
-    Iterator &operator++(int);
+    mutable Grid<T> *grid;
+    mutable index_t current;
+    ivec_t step;
+    vec_t tdelta;
+    mutable vec_t tlimit;
+
+    Iterator(Grid<T> *g, const Ray &ray);
+    Iterator(Grid<T> *g, const index_t &index);
+    Iterator &operator++();
     bucket_t &operator*() const;
     bucket_t *operator->() const;
     bool operator==(const Iterator &other) const;
     bool operator!=(const Iterator &other) const;
     const index_t getIndex() const;
   };
+  bool rayHit(const Ray &ray, scalar_t &t) const;
+  bool getIndex(const Ray &ray, index_t &result) const;
   Iterator begin(const Ray &ray) const;
   Iterator end() const;
+
+  friend Iterator;
 
 private:
   mutable std::unordered_map<size_t, bucket_t> data;

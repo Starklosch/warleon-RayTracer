@@ -1,4 +1,5 @@
 #include <Grid.hpp>
+#include <iostream>
 #include <limits>
 
 namespace war {
@@ -18,17 +19,21 @@ typename Grid<T>::bucket_t &Grid<T>::operator[](const index_t &i) const {
       i[0] * dimensions[0] * dimensions[1] + i[1] * dimensions[1] + i[2];
   return data[i1d];
 }
-
 template <class T>
-typename Grid<T>::Iterator Grid<T>::begin(const Ray &ray) const {
-  // check if ray origin is inside the grid
-  const index_t index = worldToGrid(ray.O);
-  bool bounded = true;
-  for (size_t d = 0; d < index.size(); d++) {
-    bounded &= index[d] >= 0 && index[d] < dimensions[d];
+bool Grid<T>::getIndex(const Ray &ray, index_t &result) const {
+  scalar_t t;
+  if (rayHit(ray, t)) {
+    result = worldToGrid(ray.at(t));
+    return true;
   }
-  if (bounded) {
-    return Iterator(const_cast<Grid<T> *>(this), index);
+  return false;
+}
+template <class T> bool Grid<T>::rayHit(const Ray &ray, scalar_t &t) const {
+  // check if ray origin is inside the grid
+  if (glm::all(glm::greaterThanEqual(ray.O, min)) &&
+      glm::all(glm::lessThanEqual(ray.O, max))) {
+    t = 0;
+    return true;
   }
   // test for ray vs grid AABB intersection
   // just gotta eval the closest hit since the case of the origin beign inside
@@ -36,25 +41,27 @@ typename Grid<T>::Iterator Grid<T>::begin(const Ray &ray) const {
   vec_t tmin = (min - ray.O) / ray.D;
   vec_t tmax = (max - ray.O) / ray.D;
   vec_t opt = glm::min(tmin, vec_t(tmax.y, tmax.z, tmax.x));
-  scalar_t t = glm::max(glm::max(opt.x, opt.y), opt.z);
+  t = glm::max(glm::max(opt.x, opt.y), opt.z);
   if (t >= 0) {
-    return Iterator(const_cast<Grid<T> *>(this), worldToGrid(ray.at(t)));
+    return true;
   }
-  // return end() if no intersection occurs
-  return end();
+  return false;
+}
+
+template <class T>
+typename Grid<T>::Iterator Grid<T>::begin(const Ray &ray) const {
+  return Iterator(const_cast<Grid<T> *>(this), ray);
 }
 
 template <class T> typename Grid<T>::Iterator Grid<T>::end() const {
-  size_t maxi = std::numeric_limits<size_t>::max();
-  return Iterator(nullptr, {maxi, maxi, maxi});
+  return Iterator(nullptr, index_t(MAX_INDEX));
 }
 
 template <class T>
 typename Grid<T>::index_t Grid<T>::worldToGrid(const point_t &p) const {
-  size_t maxi = std::numeric_limits<size_t>::max();
   if (glm::any(glm::lessThan(p, min)) ||
       glm::any(glm::greaterThan(p, max + EPSILON * 5)))
-    return {maxi, maxi, maxi};
+    return {MAX_INDEX, MAX_INDEX, MAX_INDEX};
 
   const vec_t wi = glm::clamp(
       vec_t(0),
@@ -62,14 +69,58 @@ typename Grid<T>::index_t Grid<T>::worldToGrid(const point_t &p) const {
       vec_t(dimensions[0] - 1, dimensions[1] - 1, dimensions[2] - 1));
   return {size_t(wi.x), size_t(wi.y), size_t(wi.z)};
 }
+template <class T>
+Grid<T>::Iterator::Iterator(Grid<T> *g, const index_t &index)
+    : grid(g), current(index) {}
 
 template <class T>
-Grid<T>::Iterator::Iterator(Grid<T> *g, const index_t &curr)
-    : grid(g), current(curr) {}
+Grid<T>::Iterator::Iterator(Grid<T> *g, const Ray &ray) : grid(g) {
+  scalar_t t;
+  if (!g) {
+    current = {MAX_INDEX, MAX_INDEX, MAX_INDEX};
+    return;
+  }
+  if (!g->rayHit(ray, t)) {
+    g = nullptr;
+    current = {MAX_INDEX, MAX_INDEX, MAX_INDEX};
+    return;
+  }
+  const point_t origin = ray.at(t);
+  current = g->worldToGrid(origin);
+  const vec_t floor = glm::floor(origin);
+  const vec_t ceil = glm::ceil(origin);
 
-template <class T>
-typename Grid<T>::Iterator &Grid<T>::Iterator::operator++(int) {
-  // TODO IMPLEMENT
+  step = glm::sign(ray.D);
+  const vec_t abs = glm::abs(step);
+  const vec_t frac =
+      (vec_t(1) - abs) * (ceil - origin) + abs * (origin - floor);
+
+  tdelta = (grid->size / vec_t(grid->dimensions)) / ray.D;
+  tlimit = origin + tdelta * frac;
+}
+
+template <class T> typename Grid<T>::Iterator &Grid<T>::Iterator::operator++() {
+  std::cout << "IN OPERATOR PLUS PLUS START: grid = " << grid << " - current = {"
+            << current[0] << ", " << current[1] << ", " << current[2] << "}"
+            << std::endl;
+  if (!grid)
+    return *this;
+  const scalar_t minT = glm::min(glm::min(tlimit.x, tlimit.y), tlimit.z);
+  for (size_t i = 0; i < DIM; i++) {
+    if (tlimit[i] != minT)
+      continue;
+    current[i] += step[i];
+    tlimit[i] += tdelta[i];
+  }
+    if (glm::any(glm::greaterThanEqual(current, grid->dimensions))) {
+      grid = nullptr;
+      current = index_t(MAX_INDEX);
+    }
+
+  std::cout << "IN OPERATOR PLUS PLUS END: grid = " << grid << " - current = {"
+            << current[0] << ", " << current[1] << ", " << current[2] << "}"
+            << std::endl;
+  return *this;
 }
 
 template <class T>
