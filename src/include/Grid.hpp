@@ -33,9 +33,11 @@ public:
     bucket_t *operator->() const;
     bool operator==(const Iterator &other) const;
     bool operator!=(const Iterator &other) const;
+    const index_t getIndex() const;
   };
-  Iterator begin(const Ray &ray)const;
-  Iterator end()const;
+  Iterator begin(const Ray &ray) const;
+  Iterator end() const;
+
 private:
   mutable std::unordered_map<size_t, bucket_t> data;
 };
