@@ -7,7 +7,7 @@ class Triangle {
 public:
   const point_t A;
   const vec_t AB, AC;
-  id_t lastCollidedRay = 0;
+  id_t lastRayHit = 0;
 
   Triangle(point_t a, point_t b, point_t c);
 

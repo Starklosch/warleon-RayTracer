@@ -18,6 +18,14 @@ FetchContent_MakeAvailable(glm)
 add_definitions(-DGLM_ENABLE_EXPERIMENTAL)
 
 FetchContent_Declare(
+  tobj
+  GIT_REPOSITORY https://github.com/tinyobjloader/tinyobjloader
+  git
+  GIT_TAG v2.0.0rc13
+)
+FetchContent_MakeAvailable(tobj)
+
+FetchContent_Declare(
   googletest
   URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
 )
@@ -39,6 +47,7 @@ add_executable(rayTracer src/main.cpp ${SOURCES})
 
 target_link_libraries(rayTracer PRIVATE stb_image_write)
 target_link_libraries(rayTracer PRIVATE glm)
+target_link_libraries(rayTracer PRIVATE tinyobjloader)
 
 install(TARGETS rayTracer DESTINATION dist)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/data DESTINATION dist)
@@ -48,6 +57,7 @@ file(GLOB_RECURSE TESTS "tests/**.cpp")
 add_executable(mytests ${TESTS} ${SOURCES})
 target_link_libraries(mytests GTest::gtest_main)
 target_link_libraries(mytests glm)
+target_link_libraries(mytests tinyobjloader)
 target_link_libraries(mytests stb_image_write)
 include(GoogleTest)
 gtest_discover_tests(mytests)
@@ -61,3 +71,5 @@ add_custom_target(format
     WORKING_DIRECTORY 
     COMMENT "Formatting source and test files with clang-format"
 )
+
+

@@ -100,9 +100,9 @@ Grid<T>::Iterator::Iterator(Grid<T> *g, const Ray &ray) : grid(g) {
 }
 
 template <class T> typename Grid<T>::Iterator &Grid<T>::Iterator::operator++() {
-  std::cout << "IN OPERATOR PLUS PLUS START: grid = " << grid << " - current = {"
-            << current[0] << ", " << current[1] << ", " << current[2] << "}"
-            << std::endl;
+  std::cout << "IN OPERATOR PLUS PLUS START: grid = " << grid
+            << " - current = {" << current[0] << ", " << current[1] << ", "
+            << current[2] << "}" << std::endl;
   if (!grid)
     return *this;
   const scalar_t minT = glm::min(glm::min(tlimit.x, tlimit.y), tlimit.z);
@@ -112,10 +112,10 @@ template <class T> typename Grid<T>::Iterator &Grid<T>::Iterator::operator++() {
     current[i] += step[i];
     tlimit[i] += tdelta[i];
   }
-    if (glm::any(glm::greaterThanEqual(current, grid->dimensions))) {
-      grid = nullptr;
-      current = index_t(MAX_INDEX);
-    }
+  if (glm::any(glm::greaterThanEqual(current, grid->dimensions))) {
+    grid = nullptr;
+    current = index_t(MAX_INDEX);
+  }
 
   std::cout << "IN OPERATOR PLUS PLUS END: grid = " << grid << " - current = {"
             << current[0] << ", " << current[1] << ", " << current[2] << "}"
