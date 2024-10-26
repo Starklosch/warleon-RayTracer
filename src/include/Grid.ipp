@@ -6,12 +6,14 @@ namespace war {
 
 template <class T>
 Grid<T>::Grid(const point_t &min, const point_t &max, const index_t &dimensions)
-    : min(min), max(max), dimensions(dimensions), size(max - min) {}
+    : min(min), max(max), dimensions(dimensions), size(max - min),
+      boxSize((max - min) / vec_t(dimensions)) {}
 
 template <class T>
 Grid<T>::Grid(const point_t &min, const point_t &max,
               const index_t &&dimensions)
-    : min(min), max(max), dimensions(dimensions), size(max - min) {}
+    : min(min), max(max), dimensions(dimensions), size(max - min),
+      boxSize((max - min) / vec_t(dimensions)) {}
 
 template <class T>
 typename Grid<T>::bucket_t &Grid<T>::operator[](const index_t &i) const {
@@ -69,6 +71,10 @@ typename Grid<T>::index_t Grid<T>::worldToGrid(const point_t &p) const {
       vec_t(dimensions[0] - 1, dimensions[1] - 1, dimensions[2] - 1));
   return {size_t(wi.x), size_t(wi.y), size_t(wi.z)};
 }
+template <class T> typename Grid<T>::aabb_t Grid<T>::getAABB(const index_t &i) {
+  return {min + vec_t(i) * boxSize, min + vec_t(i + index_t(1)) * boxSize};
+}
+
 template <class T>
 Grid<T>::Iterator::Iterator(Grid<T> *g, const index_t &index)
     : grid(g), current(index) {}

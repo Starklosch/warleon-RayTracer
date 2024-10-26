@@ -10,10 +10,13 @@ namespace war {
 class Mesh {
   typedef std::shared_ptr<Triangle> triangle_ptr;
   typedef Grid<triangle_ptr> grid_t;
+  typedef grid_t::aabb_t aabb_t;
+  typedef grid_t::index_t index_t;
   std::unique_ptr<grid_t> grid;
   std::vector<Triangle> triangles;
 
-  void voxelize(const Triangle &tri);
+  void voxelize(triangle_ptr tri);
+  bool aabbTriangleHit(const aabb_t &mbb, const Triangle &tri);
 
 public:
   Mesh();

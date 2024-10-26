@@ -3,22 +3,30 @@
 #include <array>
 #include <common.hpp>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace war {
 template <class T> class Grid {
 public:
+  typedef struct {
+    point_t min;
+    point_t max;
+  } aabb_t;
   typedef std::vector<T> bucket_t;
-  // typedef std::array<size_t, 3> index_t;
   typedef glm::tvec3<size_t> index_t;
   const point_t min, max;
-  const vec_t size;
+  const vec_t size, boxSize;
   const index_t dimensions;
 
   Grid(const point_t &min, const point_t &max, const index_t &dimensions);
   Grid(const point_t &min, const point_t &max, const index_t &&dimensions);
   bucket_t &operator[](const index_t &i) const;
   index_t worldToGrid(const point_t &p) const;
+  bool rayHit(const Ray &ray, scalar_t &t) const;
+  bool getIndex(const Ray &ray, index_t &result) const;
+
+  aabb_t getAABB(const index_t &i);
 
   class Iterator {
   public:
@@ -37,8 +45,6 @@ public:
     bool operator!=(const Iterator &other) const;
     const index_t getIndex() const;
   };
-  bool rayHit(const Ray &ray, scalar_t &t) const;
-  bool getIndex(const Ray &ray, index_t &result) const;
   Iterator begin(const Ray &ray) const;
   Iterator end() const;
 
