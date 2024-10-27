@@ -1,26 +1,25 @@
 #include <Mesh.hpp>
-#include <iostream>
+#include <gtest/gtest.h>
+#include <unistd.h>
 
 using namespace war;
-int main() {
+TEST(MESH_LOADER, load_obj) {
   Mesh::Loader load;
   std::string name("../data/bunny.obj");
-  load.OBJ(name);
+  EXPECT_TRUE(access(name.c_str(), F_OK) != -1);
+  EXPECT_TRUE(load.OBJ(name));
+  size_t count = 0;
   const auto mesh = load.getMesh();
+  EXPECT_FALSE(mesh == nullptr);
   const auto grid = mesh->getGrid();
+  EXPECT_FALSE(grid == nullptr);
   const auto dim = grid->dimensions;
-  size_t count=0;
   for (size_t i = 0; i < dim[0]; i++) {
     for (size_t j = 0; j < dim[1]; j++) {
       for (size_t k = 0; k < dim[2]; k++) {
-   count 
-        += (grid->operator[](Mesh::index_t(i, j, k))).size();
-  
-  //std::cout<<"grid["<<i<<", "<<j<<", "<<k<<"].size() = "<<count<<std::endl;
+        count += (grid->operator[](Mesh::index_t(i, j, k))).size();
       }
     }
   }
-  std::cout<<"count = "<<count<<std::endl;
-
-  return 0;
+  EXPECT_TRUE(count > 0) << count;
 }
