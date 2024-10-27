@@ -15,6 +15,7 @@ public:
   typedef grid_t::index_t index_t;
   typedef std::shared_ptr<grid_t> grid_ptr;
   typedef std::vector<triangle_ptr> triangle_set;
+  typedef std::shared_ptr<Mesh> mesh_ptr;
 
   void voxelize(triangle_ptr tri);
   bool aabbTriangleHit(const aabb_t &mbb, const Triangle &tri);
@@ -24,13 +25,14 @@ public:
   const grid_ptr getGrid() const;
 
   class Loader {
-    std::shared_ptr<Mesh> mesh;
+    mesh_ptr mesh;
 
   public:
     Loader();
     bool OBJ(const std::string &filename);
-    const std::shared_ptr<Mesh> getMesh() const;
+    const mesh_ptr getMesh() const;
   };
+  bool rayHit(const Ray &ray, vec_t &tuv, triangle_ptr &tri) const;
 
 private:
   grid_ptr grid;
