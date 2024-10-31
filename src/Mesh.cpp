@@ -2,7 +2,6 @@
 #ifndef TINYOBJLOADER_IMPLEMENTATION
 #define TINYOBJLOADER_IMPLEMENTATION
 #endif
-#include <iostream>
 #include <tiny_obj_loader.h>
 
 namespace war {
@@ -58,14 +57,14 @@ bool Mesh::rayHit(const Ray &ray, vec_t &tuv, triangle_ptr &triangle) const {
     for (size_t i = 1; i < it->size(); ++i) {
       const auto &tri = it->at(i);
       if (tri->rayHit(ray, curr)) {
-        // auto collisionIndex = grid->worldToGrid(ray.at(curr[0]));
-        // if (glm::all(glm::equal(collisionIndex, it.current))) {
-        hit = true;
-        if (curr[0] <= tuv[0]) {
-          tuv = curr;
-          triangle = tri;
+        auto collisionIndex = grid->worldToGrid(ray.at(curr[0]));
+        if (glm::all(glm::equal(collisionIndex, it.current))) {
+          hit = true;
+          if (curr[0] <= tuv[0]) {
+            tuv = curr;
+            triangle = tri;
+          }
         }
-        //}
       }
     }
     if (hit) {
@@ -84,9 +83,9 @@ void Mesh::voxelize(triangle_ptr tri) {
   index_t min = grid->worldToGrid(mbb.min);
   index_t max = grid->worldToGrid(mbb.max);
   auto diff = max - min;
-  for (size_t i = min.x; i <= max.x; i++) {
-    for (size_t j = min.y; j <= max.y; j++) {
-      for (size_t k = min.z; k <= max.z; k++) {
+  for (size_t i = min.x; i < max.x + 1; i++) {
+    for (size_t j = min.y; j < max.y + 1; j++) {
+      for (size_t k = min.z; k < max.z + 1; k++) {
         const index_t index(i, j, k);
         const aabb_t cell = grid->getAABB(index);
         bool intersect = aabbTriangleHit(cell, *tri);
@@ -145,7 +144,8 @@ bool Mesh::Loader::OBJ(const std::string &filename) {
     }
   }
   // init grid
-  mesh->grid = std::make_shared<grid_t>(min, max, grid_t::index_t(100));
+  mesh->grid = std::make_shared<grid_t>(min, max, grid_t::index_t(4));
+  // mesh->grid = std::make_shared<grid_t>(min, max, grid_t::index_t(32));
 
   // index the triangles
   for (size_t i = 0; i < mesh->triangles.size(); i++) {

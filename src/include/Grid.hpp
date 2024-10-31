@@ -35,6 +35,7 @@ public:
     ivec_t step;
     vec_t tdelta;
     mutable vec_t tlimit;
+    bool valid;
 
     Iterator(Grid<T> *g, const Ray &ray);
     Iterator(Grid<T> *g, const index_t &index);

@@ -4,7 +4,7 @@ namespace war {
 Triangle::Triangle(point_t a, point_t b, point_t c)
     : A(a), AB(b - a), AC(c - a) {}
 
-bool Triangle::rayHit(Ray ray, vec_t &tuv) {
+bool Triangle::rayHit(Ray ray, vec_t &tuv) const {
   scalar_t &t = tuv.x;
   scalar_t &u = tuv.y;
   scalar_t &v = tuv.z;

@@ -1,5 +1,4 @@
 #include <Grid.hpp>
-#include <iostream>
 #include <limits>
 
 namespace war {
@@ -61,10 +60,6 @@ template <class T> typename Grid<T>::Iterator Grid<T>::end() const {
 
 template <class T>
 typename Grid<T>::index_t Grid<T>::worldToGrid(const point_t &p) const {
-  if (glm::any(glm::lessThan(p, min)) ||
-      glm::any(glm::greaterThan(p, max + EPSILON * 5)))
-    return {MAX_INDEX, MAX_INDEX, MAX_INDEX};
-
   const vec_t wi = glm::clamp(
       vec_t(0),
       vec_t(dimensions[0], dimensions[1], dimensions[2]) * (p - min) / size,
@@ -84,11 +79,13 @@ Grid<T>::Iterator::Iterator(Grid<T> *g, const Ray &ray) : grid(g) {
   scalar_t t;
   if (!g) {
     current = {MAX_INDEX, MAX_INDEX, MAX_INDEX};
+    valid = false;
     return;
   }
   if (!g->rayHit(ray, t)) {
     g = nullptr;
     current = {MAX_INDEX, MAX_INDEX, MAX_INDEX};
+    valid = false;
     return;
   }
   const point_t origin = ray.at(t);
@@ -103,12 +100,10 @@ Grid<T>::Iterator::Iterator(Grid<T> *g, const Ray &ray) : grid(g) {
 
   tdelta = (grid->size / vec_t(grid->dimensions)) / ray.D;
   tlimit = origin + tdelta * frac;
+  valid = true;
 }
 
 template <class T> typename Grid<T>::Iterator &Grid<T>::Iterator::operator++() {
-  std::cout << "IN OPERATOR PLUS PLUS START: grid = " << grid
-            << " - current = {" << current[0] << ", " << current[1] << ", "
-            << current[2] << "}" << std::endl;
   if (!grid)
     return *this;
   const scalar_t minT = glm::min(glm::min(tlimit.x, tlimit.y), tlimit.z);
@@ -121,11 +116,8 @@ template <class T> typename Grid<T>::Iterator &Grid<T>::Iterator::operator++() {
   if (glm::any(glm::greaterThanEqual(current, grid->dimensions))) {
     grid = nullptr;
     current = index_t(MAX_INDEX);
+    valid = false;
   }
-
-  std::cout << "IN OPERATOR PLUS PLUS END: grid = " << grid << " - current = {"
-            << current[0] << ", " << current[1] << ", " << current[2] << "}"
-            << std::endl;
   return *this;
 }
 
@@ -141,7 +133,8 @@ typename Grid<T>::bucket_t *Grid<T>::Iterator::operator->() const {
 
 template <class T>
 bool Grid<T>::Iterator::operator==(const Iterator &other) const {
-  return this->grid == other.grid && this->current == other.current;
+  return this->grid == other.grid && this->current == other.current &&
+         this->valid == other.valid;
 }
 template <class T>
 bool Grid<T>::Iterator::operator!=(const Iterator &other) const {

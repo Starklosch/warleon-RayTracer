@@ -7,7 +7,7 @@ namespace war {
 Canvas::Canvas(size_t w, size_t h)
     : width(w), height(h), rgbaMatrix(w * h * 4, 0) {}
 
-void Canvas::setPixel(size_t x, size_t y, const color_t &color) {
+void Canvas::setPixel(size_t x, size_t y, const color_t &color) const {
   const size_t i = 4 * (y * width + x);
   rgbaMatrix[i] = color.r;
   rgbaMatrix[i + 1] = color.g;
