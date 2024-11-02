@@ -97,7 +97,7 @@ Grid<T>::Iterator::Iterator(Grid<T> *g, const Ray &ray) : grid(g) {
   const vec_t abs = glm::abs(step);
   const vec_t frac =
       (vec_t(1) - abs) * (ceil - origin) + abs * (origin - floor);
-  tlimit = origin + tdelta * frac;
+  tlimit = origin + tdelta * glm::normalize(frac);
   // const vec_t cellmin = grid->min + vec_t(current) * grid->boxSize;
   // const vec_t nextBound = cellmin + vec_t(step + 1) * grid->boxSize / 2.0;
   // tlimit = (nextBound - origin) / ray.D;

@@ -2,8 +2,8 @@
 #ifndef TINYOBJLOADER_IMPLEMENTATION
 #define TINYOBJLOADER_IMPLEMENTATION
 #endif
-#include <tiny_obj_loader.h>
 #include <GJK.hpp>
+#include <tiny_obj_loader.h>
 
 namespace war {
 Mesh::Mesh() : grid(nullptr), triangles() {}
@@ -96,8 +96,8 @@ void Mesh::voxelize(triangle_ptr tri) {
       for (size_t k = min.z; k <= max.z; k++) {
         const index_t index(i, j, k);
         const aabb_t cell = grid->getAABB(index);
-        //bool intersect = aabbTriangleHit(cell, *tri);
-        bool intersect = GJKcheck(cell, *tri);
+         bool intersect = aabbTriangleHit(cell, *tri);
+        //bool intersect = GJKcheck(cell, *tri);
         if (intersect) {
           grid->operator[](index).push_back(tri);
         }
