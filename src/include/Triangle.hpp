@@ -12,5 +12,7 @@ public:
 
   // Fast, Minimum Storage Ray-Triangle Intersection
   bool rayHit(Ray ray, vec_t &tuv) const;
+  point_t support(const vec_t &direction) const;
+  point_t getPoint() const;
 };
 } // namespace war

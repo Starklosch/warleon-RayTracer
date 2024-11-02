@@ -34,4 +34,23 @@ bool Triangle::rayHit(Ray ray, vec_t &tuv) const {
 
   return false;
 }
+
+point_t Triangle::support(const vec_t &direction) const {
+  const point_t points[3] = {
+      A,
+      A + AB,
+      A + AC,
+  };
+  point_t result = points[0];
+  scalar_t max = glm::dot(direction, points[0]);
+  for (size_t i = 1; i < 3; ++i) {
+    const scalar_t projection = glm::dot(direction, points[i]);
+    if (projection > max) {
+      max = projection;
+      result = points[i];
+    }
+  }
+  return result;
+}
+point_t Triangle::getPoint() const { return A; }
 }; // namespace war

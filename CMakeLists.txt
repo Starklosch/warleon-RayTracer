@@ -6,13 +6,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR})
 message("CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
+message("COMPILER = ${CMAKE_CXX_COMPILER_ID}")
 
 include(FetchContent)
 FetchContent_Declare(
   glm
   GIT_REPOSITORY https://github.com/g-truc/glm
   git
-  GIT_TAG 1.0.1  # Specify GLM version or commit
+  GIT_TAG 1.0.1  
 )
 FetchContent_MakeAvailable(glm)
 add_definitions(-DGLM_ENABLE_EXPERIMENTAL)
@@ -54,6 +55,7 @@ add_executable(rayTracer src/main.cpp ${SOURCES})
 target_compile_options(rayTracer PRIVATE -Wall -Wextra)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	target_compile_options(rayTracer PRIVATE -fsanitize=address)
+	target_link_libraries(rayTracer PRIVATE -fsanitize=address)
 endif()
 
 target_link_libraries(rayTracer PRIVATE stb_image_write)

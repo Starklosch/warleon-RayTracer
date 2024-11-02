@@ -1,4 +1,5 @@
 #pragma once
+#include <AABB.hpp>
 #include <Ray.hpp>
 #include <array>
 #include <common.hpp>
@@ -9,10 +10,6 @@
 namespace war {
 template <class T> class Grid {
 public:
-  typedef struct {
-    point_t min;
-    point_t max;
-  } aabb_t;
   typedef std::vector<T> bucket_t;
   typedef glm::tvec3<size_t> index_t;
   const point_t min, max;

@@ -3,11 +3,12 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #endif
 #include <tiny_obj_loader.h>
+#include <GJK.hpp>
 
 namespace war {
 Mesh::Mesh() : grid(nullptr), triangles() {}
 
-bool Mesh::aabbTriangleHit(const aabb_t &mbb, const Triangle &tri) {
+bool Mesh::aabbTriangleHit(const aabb_t &mbb, const Triangle &tri) const {
   const vec_t &e = grid->boxSize;
   const point_t center = mbb.min + e / 2.0;
   const point_t A = tri.A - center;
@@ -40,9 +41,9 @@ bool Mesh::aabbTriangleHit(const aabb_t &mbb, const Triangle &tri) {
     if (glm::length(ax) < EPSILON)
       continue;
 
-    scalar_t pt[3] = {glm::dot(A, ax), glm::dot(B, ax), glm::dot(C, ax)};
-    scalar_t pb[3] = {glm::dot(X, ax), glm::dot(Y, ax), glm::dot(Z, ax)};
-    scalar_t r = glm::dot(e, glm::abs(vec_t(pb[0], pb[1], pb[2])));
+    vec_t pt(glm::dot(A, ax), glm::dot(B, ax), glm::dot(C, ax));
+    vec_t pb(glm::dot(X, ax), glm::dot(Y, ax), glm::dot(Z, ax));
+    scalar_t r = glm::dot(e, glm::abs(pb));
 
     scalar_t minpt = glm::min(glm::min(pt[0], pt[1]), pt[2]);
     scalar_t maxpt = glm::max(glm::max(pt[0], pt[1]), pt[2]);
@@ -61,21 +62,22 @@ bool Mesh::rayHit(const Ray &ray, vec_t &tuv, triangle_ptr &triangle) const {
     }
     vec_t curr;
     bool hit = it->at(0)->rayHit(ray, tuv);
-    for (size_t i = 1; i < it->size(); ++i) {
+    for (size_t i = 0; i < it->size(); ++i) {
       const auto &tri = it->at(i);
       if (tri->rayHit(ray, curr)) {
-        auto collisionIndex = grid->worldToGrid(ray.at(curr[0]));
-        if (glm::all(glm::equal(collisionIndex, it.current))) {
-          hit = true;
-          if (curr[0] <= tuv[0]) {
-            tuv = curr;
-            triangle = tri;
-          }
+        // auto collisionIndex = grid->worldToGrid(ray.at(curr[0]));
+        // if (glm::all(glm::equal(collisionIndex, it.current))) {
+        hit = true;
+        if (curr[0] <= tuv[0]) {
+          tuv = curr;
+          triangle = tri;
+          //}
+          //}
         }
       }
-    }
-    if (hit) {
-      return true;
+      if (hit) {
+        return true;
+      }
     }
   }
   return false;
@@ -94,7 +96,8 @@ void Mesh::voxelize(triangle_ptr tri) {
       for (size_t k = min.z; k <= max.z; k++) {
         const index_t index(i, j, k);
         const aabb_t cell = grid->getAABB(index);
-        bool intersect = aabbTriangleHit(cell, *tri);
+        //bool intersect = aabbTriangleHit(cell, *tri);
+        bool intersect = GJKcheck(cell, *tri);
         if (intersect) {
           grid->operator[](index).push_back(tri);
         }
@@ -102,9 +105,10 @@ void Mesh::voxelize(triangle_ptr tri) {
     }
   }
 }
+
 const typename Mesh::grid_ptr Mesh::getGrid() const { return grid; }
 
-Mesh::Loader::Loader() : mesh(std::make_unique<Mesh>()) {}
+Mesh::Loader::Loader() : mesh(std::make_shared<Mesh>()) {}
 bool Mesh::Loader::OBJ(const std::string &filename) {
   tinyobj::ObjReaderConfig reader_config;
   tinyobj::ObjReader reader;
@@ -139,7 +143,7 @@ bool Mesh::Loader::OBJ(const std::string &filename) {
         tinyobj::real_t vy = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
         tinyobj::real_t vz = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
 
-        vertices[v] = vec_t(vx, vy ,vz);
+        vertices[v] = vec_t(vx, vy, vz);
         min = glm::min(vertices[v], min);
         max = glm::max(vertices[v], max);
       }

@@ -71,7 +71,7 @@ typename Grid<T>::index_t Grid<T>::worldToGrid(const point_t &p) const {
       vec_t(dimensions[0] - 1, dimensions[1] - 1, dimensions[2] - 1));
   return {size_t(wi.x), size_t(wi.y), size_t(wi.z)};
 }
-template <class T> typename Grid<T>::aabb_t Grid<T>::getAABB(const index_t &i) {
+template <class T> aabb_t Grid<T>::getAABB(const index_t &i) {
   return {min + vec_t(i) * boxSize, min + vec_t(i + index_t(1)) * boxSize};
 }
 
@@ -112,7 +112,6 @@ template <class T> typename Grid<T>::Iterator &Grid<T>::Iterator::operator++() {
     if (tlimit[i] == minT) {
       current[i] += step[i];
       tlimit[i] += tdelta[i];
-      break;
     }
   }
   if (glm::any(glm::lessThan(current, index_t(0))) ||

@@ -11,14 +11,13 @@ class Mesh {
 public:
   typedef std::shared_ptr<Triangle> triangle_ptr;
   typedef Grid<triangle_ptr> grid_t;
-  typedef grid_t::aabb_t aabb_t;
   typedef grid_t::index_t index_t;
   typedef std::shared_ptr<grid_t> grid_ptr;
   typedef std::vector<triangle_ptr> triangle_set;
   typedef std::shared_ptr<Mesh> mesh_ptr;
 
   void voxelize(triangle_ptr tri);
-  bool aabbTriangleHit(const aabb_t &mbb, const Triangle &tri);
+  bool aabbTriangleHit(const aabb_t &mbb, const Triangle &tri) const;
 
 public:
   Mesh();
