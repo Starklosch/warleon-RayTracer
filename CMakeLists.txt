@@ -24,6 +24,13 @@ FetchContent_Declare(
   GIT_TAG v2.0.0rc13
 )
 FetchContent_MakeAvailable(tobj)
+FetchContent_Declare(
+    fmt
+    GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+    GIT_TAG 11.0.2
+)
+FetchContent_MakeAvailable(fmt)
+
 
 FetchContent_Declare(
   googletest
@@ -37,17 +44,22 @@ include_directories(third_party/include)
 include_directories(src/include)
 
 add_library(stb_image_write INTERFACE)
-target_include_directories(stb_image_write INTERFACE third_party/include)
+target_include_directories(stb_image_write INTERFACE third_party/include/stb_image)
 
 
 file(GLOB_RECURSE SOURCES "src/**.[ic]pp")
 list(REMOVE_ITEM SOURCES "${CMAKE_SOURCE_DIR}/src/main.cpp")
 message("SOURCE FILES = ${SOURCES}")
 add_executable(rayTracer src/main.cpp ${SOURCES})
+target_compile_options(rayTracer PRIVATE -Wall -Wextra)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	target_compile_options(rayTracer PRIVATE -fsanitize=address)
+endif()
 
 target_link_libraries(rayTracer PRIVATE stb_image_write)
 target_link_libraries(rayTracer PRIVATE glm)
 target_link_libraries(rayTracer PRIVATE tinyobjloader)
+target_link_libraries(rayTracer PRIVATE fmt::fmt)
 
 install(TARGETS rayTracer DESTINATION dist)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/data DESTINATION dist)
@@ -59,6 +71,7 @@ target_link_libraries(mytests GTest::gtest_main)
 target_link_libraries(mytests glm)
 target_link_libraries(mytests tinyobjloader)
 target_link_libraries(mytests stb_image_write)
+target_link_libraries(mytests  fmt::fmt)
 include(GoogleTest)
 gtest_discover_tests(mytests)
 
@@ -71,5 +84,6 @@ add_custom_target(format
     WORKING_DIRECTORY 
     COMMENT "Formatting source and test files with clang-format"
 )
+
 
 

@@ -6,13 +6,18 @@ namespace war {
 template <class T>
 Grid<T>::Grid(const point_t &min, const point_t &max, const index_t &dimensions)
     : min(min), max(max), dimensions(dimensions), size(max - min),
-      boxSize((max - min) / vec_t(dimensions)) {}
+      boxSize((max - min) / vec_t(dimensions)) {
+  print("grid MBB : min = [{}, {}, {}], max = [{}, {}, {}]\n", min[0], min[1],
+        min[2], max[0], max[1], max[2]);
+  print("grid Dimensions = [{}, {}, {}]\n", dimensions[0], dimensions[1],
+        dimensions[2]);
+}
 
-template <class T>
-Grid<T>::Grid(const point_t &min, const point_t &max,
-              const index_t &&dimensions)
-    : min(min), max(max), dimensions(dimensions), size(max - min),
-      boxSize((max - min) / vec_t(dimensions)) {}
+// template <class T>
+// Grid<T>::Grid(const point_t &min, const point_t &max,
+//               const index_t &&dimensions)
+//     : min(min), max(max), dimensions(dimensions), size(max - min),
+//       boxSize((max - min) / vec_t(dimensions)) {}
 
 template <class T>
 typename Grid<T>::bucket_t &Grid<T>::operator[](const index_t &i) const {
@@ -77,46 +82,43 @@ Grid<T>::Iterator::Iterator(Grid<T> *g, const index_t &index)
 template <class T>
 Grid<T>::Iterator::Iterator(Grid<T> *g, const Ray &ray) : grid(g) {
   scalar_t t;
-  if (!g) {
-    current = {MAX_INDEX, MAX_INDEX, MAX_INDEX};
-    valid = false;
-    return;
-  }
-  if (!g->rayHit(ray, t)) {
+  if (!g || !g->rayHit(ray, t)) {
     g = nullptr;
     current = {MAX_INDEX, MAX_INDEX, MAX_INDEX};
-    valid = false;
     return;
   }
   const point_t origin = ray.at(t);
   current = g->worldToGrid(origin);
+  step = glm::sign(ray.D);
+  tdelta = (grid->size / vec_t(grid->dimensions)) / glm::abs(ray.D);
+
   const vec_t floor = glm::floor(origin);
   const vec_t ceil = glm::ceil(origin);
-
-  step = glm::sign(ray.D);
   const vec_t abs = glm::abs(step);
   const vec_t frac =
       (vec_t(1) - abs) * (ceil - origin) + abs * (origin - floor);
-
-  tdelta = (grid->size / vec_t(grid->dimensions)) / ray.D;
   tlimit = origin + tdelta * frac;
-  valid = true;
+  // const vec_t cellmin = grid->min + vec_t(current) * grid->boxSize;
+  // const vec_t nextBound = cellmin + vec_t(step + 1) * grid->boxSize / 2.0;
+  // tlimit = (nextBound - origin) / ray.D;
 }
 
 template <class T> typename Grid<T>::Iterator &Grid<T>::Iterator::operator++() {
   if (!grid)
     return *this;
+
   const scalar_t minT = glm::min(glm::min(tlimit.x, tlimit.y), tlimit.z);
   for (size_t i = 0; i < DIM; i++) {
-    if (tlimit[i] != minT)
-      continue;
-    current[i] += step[i];
-    tlimit[i] += tdelta[i];
+    if (tlimit[i] == minT) {
+      current[i] += step[i];
+      tlimit[i] += tdelta[i];
+      break;
+    }
   }
-  if (glm::any(glm::greaterThanEqual(current, grid->dimensions))) {
+  if (glm::any(glm::lessThan(current, index_t(0))) ||
+      glm::any(glm::greaterThanEqual(current, grid->dimensions))) {
     grid = nullptr;
     current = index_t(MAX_INDEX);
-    valid = false;
   }
   return *this;
 }
@@ -133,8 +135,7 @@ typename Grid<T>::bucket_t *Grid<T>::Iterator::operator->() const {
 
 template <class T>
 bool Grid<T>::Iterator::operator==(const Iterator &other) const {
-  return this->grid == other.grid && this->current == other.current &&
-         this->valid == other.valid;
+  return this->grid == other.grid && this->current == other.current;
 }
 template <class T>
 bool Grid<T>::Iterator::operator!=(const Iterator &other) const {

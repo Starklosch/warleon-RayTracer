@@ -12,7 +12,7 @@ bool Triangle::rayHit(Ray ray, vec_t &tuv) const {
   vec_t P = glm::cross(ray.D, AC);
   scalar_t det = glm::dot(AB, P);
 
-  if (det > -EPSILON && det < EPSILON)
+  if (glm::abs(det) < EPSILON)
     return false;
 
   scalar_t idet = 1.0 / det;
@@ -25,10 +25,13 @@ bool Triangle::rayHit(Ray ray, vec_t &tuv) const {
 
   vec_t Q = glm::cross(T, AB);
   v = glm::dot(ray.D, Q) * idet;
-  if (v < 0.0 || v > 1.0)
+  if (v < 0.0 || (u + v) > 1.0)
     return false;
 
   t = glm::dot(AC, Q) * idet;
-  return true;
+  if (t > EPSILON)
+    return true;
+
+  return false;
 }
 }; // namespace war

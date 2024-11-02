@@ -7,7 +7,6 @@
 namespace war {
 
 class Canvas {
-  mutable std::vector<unsigned char> rgbaMatrix;
 
 public:
   const size_t width, height;
@@ -16,5 +15,8 @@ public:
   void setPixel(size_t x, size_t y, const color_t &color) const;
   void exportImage(const std::string &filename) const;
   coord2d_t getNormalizedCoordinates(size_t x, size_t y) const;
+
+private:
+  mutable std::vector<unsigned char> rgbaMatrix;
 };
 }; // namespace war

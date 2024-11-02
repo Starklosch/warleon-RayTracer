@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fmt/core.h>
 #include <glm/glm.hpp>
 #include <id.hpp>
 #include <limits>
@@ -24,5 +25,7 @@ const ID IDgenerator;
 
 scalar_t min(const vec_t &vec);
 scalar_t max(const vec_t &vec);
+
+using fmt::print;
 
 }; // namespace war
