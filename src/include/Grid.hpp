@@ -21,17 +21,16 @@ public:
   bucket_t &operator[](const index_t &i) const;
   index_t worldToGrid(const point_t &p) const;
   bool rayHit(const Ray &ray, scalar_t &t) const;
-  bool getIndex(const Ray &ray, index_t &result) const;
 
-  aabb_t getAABB(const index_t &i);
+  aabb_t getAABB(const index_t &i) const;
 
   class Iterator {
   public:
     mutable Grid<T> *grid;
     mutable index_t current;
-    ivec_t step;
-    vec_t tdelta;
-    mutable vec_t tlimit;
+    mutable point_t p;
+    ivec_t step, abstep;
+    vec_t D;
 
     Iterator(Grid<T> *g, const Ray &ray);
     Iterator(Grid<T> *g, const index_t &index);

@@ -5,6 +5,10 @@ Triangle::Triangle(point_t a, point_t b, point_t c)
     : A(a), AB(b - a), AC(c - a) {}
 
 bool Triangle::rayHit(Ray ray, vec_t &tuv) const {
+  //  print("------ in Triangle::rayHit ------\n");
+  //  print("A =  [{}, {}, {}]\n", A[0], A[1], A[2]);
+  //  print("AB =  [{}, {}, {}]\n", AB[0], AB[1], AB[2]);
+  //  print("AC =  [{}, {}, {}]\n", AC[0], AC[1], AC[2]);
   scalar_t &t = tuv.x;
   scalar_t &u = tuv.y;
   scalar_t &v = tuv.z;
@@ -12,26 +16,47 @@ bool Triangle::rayHit(Ray ray, vec_t &tuv) const {
   vec_t P = glm::cross(ray.D, AC);
   scalar_t det = glm::dot(AB, P);
 
-  if (glm::abs(det) < EPSILON)
+  // print("P = [{}, {}, {}]\n", P[0], P[1], P[2]);
+  // print("det = {}\n", det);
+  if (glm::abs(det) < EPSILON) {
+    // print("return false\n");
+    // print("------ out Triangle::rayHit ------\n");
     return false;
+  }
 
   scalar_t idet = 1.0 / det;
 
   vec_t T = ray.O - A;
-
   u = glm::dot(T, P) * idet;
-  if (u < 0.0 || u > 1.0)
+  // print("T = [{}, {}, {}]\n", T[0], T[1], T[2]);
+  // print("u = {}\n", u);
+  if (u < 0.0 || u > 1.0) {
+    // print("return false\n");
+    // print("------ out Triangle::rayHit ------\n");
     return false;
+  }
 
   vec_t Q = glm::cross(T, AB);
   v = glm::dot(ray.D, Q) * idet;
-  if (v < 0.0 || (u + v) > 1.0)
+  // print("Q = [{}, {}, {}]\n", Q[0], Q[1], Q[2]);
+  // print("v = {}\n", v);
+  // print("u+v = {}\n", u + v);
+  if (v < 0.0 || (u + v) > 1.0) {
+    // print("return false\n");
+    // print("------ out Triangle::rayHit ------\n");
     return false;
+  }
 
   t = glm::dot(AC, Q) * idet;
-  if (t > EPSILON)
+  // print("t = {}\n", t);
+  if (t > EPSILON) {
+    // print("return true\n");
+    // print("------ out Triangle::rayHit ------\n");
     return true;
+  }
 
+  // print("return false\n");
+  // print("------ out Triangle::rayHit ------\n");
   return false;
 }
 

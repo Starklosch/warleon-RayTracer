@@ -26,4 +26,4 @@ Ray Camera::getRayFromViewportCoordinates(scalar_t x, scalar_t y) const {
   return Ray(ray.O, target - ray.O);
 }
 
-}; // namespace war
+};  // namespace war

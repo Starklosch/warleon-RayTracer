@@ -21,7 +21,7 @@ void Canvas::exportImage(const std::string &filename) const {
 
 coord2d_t Canvas::getNormalizedCoordinates(size_t x, size_t y) const {
   scalar_t hw = width / 2, hh = height / 2;
-  return coord2d_t((x - hw) / hw, (y - hh) / hh);
+  return coord2d_t((x - hw) / hw, (hh - y) / hh);
 }
 
-}; // namespace war
+};  // namespace war

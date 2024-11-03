@@ -2,8 +2,9 @@
 #ifndef TINYOBJLOADER_IMPLEMENTATION
 #define TINYOBJLOADER_IMPLEMENTATION
 #endif
-#include <GJK.hpp>
 #include <tiny_obj_loader.h>
+
+#include <GJK.hpp>
 
 namespace war {
 Mesh::Mesh() : grid(nullptr), triangles() {}
@@ -16,6 +17,7 @@ bool Mesh::aabbTriangleHit(const aabb_t &mbb, const Triangle &tri) const {
   const point_t C = tri.A + tri.AC - center;
   const vec_t AB = B - A;
   const vec_t AC = C - A;
+  const vec_t BC = C - B;
 
   const vec_t X(1.0, 0.0, 0.0);
   const vec_t Y(0.0, 1.0, 0.0);
@@ -26,20 +28,19 @@ bool Mesh::aabbTriangleHit(const aabb_t &mbb, const Triangle &tri) const {
       Y,
       Z,
       glm::normalize(glm::cross(AB, AC)),
-      glm::normalize(glm::cross(X, A)),
-      glm::normalize(glm::cross(X, B)),
-      glm::normalize(glm::cross(X, C)),
-      glm::normalize(glm::cross(Y, A)),
-      glm::normalize(glm::cross(Y, B)),
-      glm::normalize(glm::cross(Y, C)),
-      glm::normalize(glm::cross(Z, A)),
-      glm::normalize(glm::cross(Z, B)),
-      glm::normalize(glm::cross(Z, C)),
+      glm::normalize(glm::cross(X, AB)),
+      glm::normalize(glm::cross(X, AC)),
+      glm::normalize(glm::cross(X, BC)),
+      glm::normalize(glm::cross(Y, AB)),
+      glm::normalize(glm::cross(Y, AC)),
+      glm::normalize(glm::cross(Y, BC)),
+      glm::normalize(glm::cross(Z, AB)),
+      glm::normalize(glm::cross(Z, AC)),
+      glm::normalize(glm::cross(Z, BC)),
   };
 
   for (const auto &ax : axis) {
-    if (glm::length(ax) < EPSILON)
-      continue;
+    if (glm::length(ax) < EPSILON) continue;
 
     vec_t pt(glm::dot(A, ax), glm::dot(B, ax), glm::dot(C, ax));
     vec_t pb(glm::dot(X, ax), glm::dot(Y, ax), glm::dot(Z, ax));
@@ -56,18 +57,30 @@ bool Mesh::aabbTriangleHit(const aabb_t &mbb, const Triangle &tri) const {
 }
 
 bool Mesh::rayHit(const Ray &ray, vec_t &tuv, triangle_ptr &triangle) const {
+  print("------ in Mesh::rayHit ------[ \n");
   for (auto it = grid->begin(ray); it != grid->end(); ++it) {
+    print("cell [{}, {}, {}] size = {}\n", it.current[0], it.current[1],
+          it.current[2], it->size());
     if (it->empty()) {
       continue;
     }
+    print(
+        "------ begin collision tests in cell [{},{},{}] with {} triangles "
+        "------ [\n",
+        it.current[0], it.current[1], it.current[2], it->size());
     vec_t curr;
     bool hit = it->at(0)->rayHit(ray, tuv);
-    for (size_t i = 0; i < it->size(); ++i) {
+    print("triangle 0, hit = {}\n", hit);
+    tuv[0] = hit ? tuv[0] : MAX_SCALAR;
+    for (size_t i = 1; i < it->size(); ++i) {
       const auto &tri = it->at(i);
-      if (tri->rayHit(ray, curr)) {
+      const bool currHit = tri->rayHit(ray, curr);
+      print("triangle {}, hit = {} \n", i, currHit);
+      if (currHit) {
         // auto collisionIndex = grid->worldToGrid(ray.at(curr[0]));
         // if (glm::all(glm::equal(collisionIndex, it.current))) {
-        hit = true;
+        print("current t:{} <= last t:{}? {}\n", curr[0], tuv[0],
+              curr[0] <= tuv[0]);
         if (curr[0] <= tuv[0]) {
           tuv = curr;
           triangle = tri;
@@ -75,11 +88,19 @@ bool Mesh::rayHit(const Ray &ray, vec_t &tuv, triangle_ptr &triangle) const {
           //}
         }
       }
-      if (hit) {
-        return true;
-      }
+      hit |= currHit;
+    }
+    print(
+        "]------ end collision tests in cell [{},{},{}] with {} triangles, "
+        "collision found: {} "
+        "------\n",
+        it.current[0], it.current[1], it.current[2], it->size(), hit);
+    if (hit) {
+      print("]------ out Mesh::rayHit ------\n");
+      return true;
     }
   }
+  print("]------ out Mesh::rayHit ------\n");
   return false;
 }
 
@@ -96,8 +117,8 @@ void Mesh::voxelize(triangle_ptr tri) {
       for (size_t k = min.z; k <= max.z; k++) {
         const index_t index(i, j, k);
         const aabb_t cell = grid->getAABB(index);
-         bool intersect = aabbTriangleHit(cell, *tri);
-        //bool intersect = GJKcheck(cell, *tri);
+        bool intersect = aabbTriangleHit(cell, *tri);
+        // bool intersect = GJKcheck(cell, *tri);
         if (intersect) {
           grid->operator[](index).push_back(tri);
         }
@@ -177,4 +198,4 @@ bool Mesh::Loader::OBJ(const std::string &filename) {
   return true;
 }
 const typename Mesh::mesh_ptr Mesh::Loader::getMesh() const { return mesh; }
-} // namespace war
+}  // namespace war

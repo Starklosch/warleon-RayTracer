@@ -33,7 +33,6 @@ TEST(GRID_ITERATOR, comparison) {
 }
 
 TEST(GRID_ITERATOR, operator_plus_plus) {
-
   auto it = grid.begin(ray);
   const auto i = it.getIndex();
   size_t j = 0;

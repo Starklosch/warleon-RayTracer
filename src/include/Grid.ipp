@@ -13,27 +13,13 @@ Grid<T>::Grid(const point_t &min, const point_t &max, const index_t &dimensions)
         dimensions[2]);
 }
 
-// template <class T>
-// Grid<T>::Grid(const point_t &min, const point_t &max,
-//               const index_t &&dimensions)
-//     : min(min), max(max), dimensions(dimensions), size(max - min),
-//       boxSize((max - min) / vec_t(dimensions)) {}
-
 template <class T>
 typename Grid<T>::bucket_t &Grid<T>::operator[](const index_t &i) const {
   const size_t i1d =
-      i[0] * dimensions[0] * dimensions[1] + i[1] * dimensions[1] + i[2];
+      i.z + i.y * dimensions.z + i.x * dimensions.z * dimensions.y;
   return data[i1d];
 }
-template <class T>
-bool Grid<T>::getIndex(const Ray &ray, index_t &result) const {
-  scalar_t t;
-  if (rayHit(ray, t)) {
-    result = worldToGrid(ray.at(t));
-    return true;
-  }
-  return false;
-}
+
 template <class T> bool Grid<T>::rayHit(const Ray &ray, scalar_t &t) const {
   // check if ray origin is inside the grid
   if (glm::all(glm::greaterThanEqual(ray.O, min)) &&
@@ -48,7 +34,7 @@ template <class T> bool Grid<T>::rayHit(const Ray &ray, scalar_t &t) const {
   vec_t tmax = (max - ray.O) / ray.D;
   vec_t opt = glm::min(tmin, vec_t(tmax.y, tmax.z, tmax.x));
   t = glm::max(glm::max(opt.x, opt.y), opt.z);
-  if (t >= 0) {
+  if (t >EPSILON) {
     return true;
   }
   return false;
@@ -70,8 +56,9 @@ typename Grid<T>::index_t Grid<T>::worldToGrid(const point_t &p) const {
       vec_t(dimensions[0], dimensions[1], dimensions[2]) * (p - min) / size,
       vec_t(dimensions[0] - 1, dimensions[1] - 1, dimensions[2] - 1));
   return {size_t(wi.x), size_t(wi.y), size_t(wi.z)};
+  // return vec_t(dimensions)*(p-min)/size;
 }
-template <class T> aabb_t Grid<T>::getAABB(const index_t &i) {
+template <class T> aabb_t Grid<T>::getAABB(const index_t &i) const {
   return {min + vec_t(i) * boxSize, min + vec_t(i + index_t(1)) * boxSize};
 }
 
@@ -87,31 +74,31 @@ Grid<T>::Iterator::Iterator(Grid<T> *g, const Ray &ray) : grid(g) {
     current = {MAX_INDEX, MAX_INDEX, MAX_INDEX};
     return;
   }
-  const point_t origin = ray.at(t);
-  current = g->worldToGrid(origin);
-  step = glm::sign(ray.D);
-  tdelta = (grid->size / vec_t(grid->dimensions)) / glm::abs(ray.D);
-
-  const vec_t floor = glm::floor(origin);
-  const vec_t ceil = glm::ceil(origin);
-  const vec_t abs = glm::abs(step);
-  const vec_t frac =
-      (vec_t(1) - abs) * (ceil - origin) + abs * (origin - floor);
-  tlimit = origin + tdelta * glm::normalize(frac);
-  // const vec_t cellmin = grid->min + vec_t(current) * grid->boxSize;
-  // const vec_t nextBound = cellmin + vec_t(step + 1) * grid->boxSize / 2.0;
-  // tlimit = (nextBound - origin) / ray.D;
+  p = ray.at(t);
+  current = g->worldToGrid(p);
+  D = ray.D;
+  step = glm::sign(D);
+  abstep = glm::abs(step);
+  print("------ in iteratior constructor ------\n");
+  print("starting point = [{}, {}, {}]\n", p.x, p.y, p.z);
+  print("starting cell = [{}, {}, {}]\n", current.x, current.y, current.z);
+  print("ray direction = [{}, {}, {}]\n", D.x, D.y, D.z);
+  print("iterator step = [{}, {}, {}]\n", step.x, step.y, step.z);
+  print("------ out iteratior constructor ------\n");
 }
 
 template <class T> typename Grid<T>::Iterator &Grid<T>::Iterator::operator++() {
   if (!grid)
     return *this;
+  const aabb_t box = grid->getAABB(current);
+  const point_t pivot = vec_t(abstep) * box.max + vec_t(-abstep + 1) * box.min;
 
-  const scalar_t minT = glm::min(glm::min(tlimit.x, tlimit.y), tlimit.z);
+  const vec_t next = (pivot - p) / (D + EPSILON);
+  const scalar_t min = glm::min(glm::min(next.x, next.y), next.z);
   for (size_t i = 0; i < DIM; i++) {
-    if (tlimit[i] == minT) {
+    if (glm::abs(next[i] - min) < EPSILON) {
       current[i] += step[i];
-      tlimit[i] += tdelta[i];
+      p += min * grid->boxSize;
     }
   }
   if (glm::any(glm::lessThan(current, index_t(0))) ||
@@ -119,6 +106,12 @@ template <class T> typename Grid<T>::Iterator &Grid<T>::Iterator::operator++() {
     grid = nullptr;
     current = index_t(MAX_INDEX);
   }
+  print("------ in iteratior++ ------\n");
+  print("point = [{}, {}, {}]\n", p.x, p.y, p.z);
+  print("cell = [{}, {}, {}]\n", current.x, current.y, current.z);
+  print("ray direction = [{}, {}, {}]\n", D.x, D.y, D.z);
+  print("iterator step = [{}, {}, {}]\n", step.x, step.y, step.z);
+  print("------ out iteratior++ ------\n");
   return *this;
 }
 
