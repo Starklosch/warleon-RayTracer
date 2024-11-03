@@ -18,6 +18,7 @@ bool Mesh::aabbTriangleHit(const aabb_t &mbb, const Triangle &tri) const {
   const vec_t AB = B - A;
   const vec_t AC = C - A;
   const vec_t BC = C - B;
+  const vec_t N = glm::normalize(glm::cross(AB, AC));
 
   const vec_t X(1.0, 0.0, 0.0);
   const vec_t Y(0.0, 1.0, 0.0);
@@ -27,16 +28,16 @@ bool Mesh::aabbTriangleHit(const aabb_t &mbb, const Triangle &tri) const {
       X,
       Y,
       Z,
-      glm::normalize(glm::cross(AB, AC)),
-      glm::normalize(glm::cross(X, AB)),
-      glm::normalize(glm::cross(X, AC)),
-      glm::normalize(glm::cross(X, BC)),
-      glm::normalize(glm::cross(Y, AB)),
-      glm::normalize(glm::cross(Y, AC)),
-      glm::normalize(glm::cross(Y, BC)),
-      glm::normalize(glm::cross(Z, AB)),
-      glm::normalize(glm::cross(Z, AC)),
-      glm::normalize(glm::cross(Z, BC)),
+      N,
+      glm::normalize(glm::cross(X, glm::cross(-N, AB))),
+      glm::normalize(glm::cross(X, glm::cross(N, AC))),
+      glm::normalize(glm::cross(X, glm::cross(-N, BC))),
+      glm::normalize(glm::cross(Y, glm::cross(-N, AB))),
+      glm::normalize(glm::cross(Y, glm::cross(N, AC))),
+      glm::normalize(glm::cross(Y, glm::cross(-N, BC))),
+      glm::normalize(glm::cross(Z, glm::cross(-N, AB))),
+      glm::normalize(glm::cross(Z, glm::cross(N, AC))),
+      glm::normalize(glm::cross(Z, glm::cross(-N, BC))),
   };
 
   for (const auto &ax : axis) {
