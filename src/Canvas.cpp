@@ -24,4 +24,27 @@ coord2d_t Canvas::getNormalizedCoordinates(size_t x, size_t y) const {
   return coord2d_t((x - hw) / hw, (hh - y) / hh);
 }
 
-};  // namespace war
+// Bresenham's line algorithm for drawing a line between 2D points
+void Canvas::drawLine(size_t x0, size_t y0, size_t x1, size_t y1,
+                      const color_t &color) const {
+  int dx = glm::abs(x1 - x0), dy = glm::abs(y1 - y0);
+  int sx = (x0 < x1) ? 1 : -1;
+  int sy = (y0 < y1) ? 1 : -1;
+  int err = dx - dy;
+
+  while (true) {
+    setPixel(x0, y0, color);
+    if (x0 == x1 && y0 == y1)
+      break;
+    int e2 = 2 * err;
+    if (e2 > -dy) {
+      err -= dy;
+      x0 += sx;
+    }
+    if (e2 < dx) {
+      err += dx;
+      y0 += sy;
+    }
+  }
+}
+}; // namespace war

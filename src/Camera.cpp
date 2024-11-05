@@ -26,4 +26,12 @@ Ray Camera::getRayFromViewportCoordinates(scalar_t x, scalar_t y) const {
   return Ray(ray.O, target - ray.O);
 }
 
-};  // namespace war
+coord2d_t Camera::projectPoint(const point_t &point,
+                               const projectionMatrix_t &projectionMatrix) {
+  vec4_t clipSpace = projectionMatrix * vec4_t(point, 1.0);
+  vec_t ndcSpace = vec_t(clipSpace) / clipSpace.w;
+  int x = (ndcSpace.x * 0.5 + 0.5) * width;
+  int y = (ndcSpace.y * 0.5 + 0.5) * height;
+  return glm::vec2(x, y);
+}
+}; // namespace war

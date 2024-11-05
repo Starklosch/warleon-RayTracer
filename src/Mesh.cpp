@@ -17,31 +17,29 @@ bool Mesh::aabbTriangleHit(const aabb_t &mbb, const Triangle &tri) const {
   const point_t C = tri.A + tri.AC - center;
   const vec_t AB = B - A;
   const vec_t AC = C - A;
-  const vec_t BC = C - B;
+  // const vec_t BC = C - B;
   const vec_t N = glm::normalize(glm::cross(AB, AC));
 
   const vec_t X(1.0, 0.0, 0.0);
   const vec_t Y(0.0, 1.0, 0.0);
   const vec_t Z(0.0, 0.0, 1.0);
 
-  const vec_t axis[13] = {
-      X,
-      Y,
-      Z,
-      N,
-      glm::normalize(glm::cross(X, glm::cross(-N, AB))),
-      glm::normalize(glm::cross(X, glm::cross(N, AC))),
-      glm::normalize(glm::cross(X, glm::cross(-N, BC))),
-      glm::normalize(glm::cross(Y, glm::cross(-N, AB))),
-      glm::normalize(glm::cross(Y, glm::cross(N, AC))),
-      glm::normalize(glm::cross(Y, glm::cross(-N, BC))),
-      glm::normalize(glm::cross(Z, glm::cross(-N, AB))),
-      glm::normalize(glm::cross(Z, glm::cross(N, AC))),
-      glm::normalize(glm::cross(Z, glm::cross(-N, BC))),
+  const vec_t axis[] = {
+      X, Y, Z, N,
+      // glm::normalize(glm::cross(X, glm::cross(-N, AB))),
+      // glm::normalize(glm::cross(X, glm::cross(N, AC))),
+      // glm::normalize(glm::cross(X, glm::cross(-N, BC))),
+      // glm::normalize(glm::cross(Y, glm::cross(-N, AB))),
+      // glm::normalize(glm::cross(Y, glm::cross(N, AC))),
+      // glm::normalize(glm::cross(Y, glm::cross(-N, BC))),
+      // glm::normalize(glm::cross(Z, glm::cross(-N, AB))),
+      // glm::normalize(glm::cross(Z, glm::cross(N, AC))),
+      // glm::normalize(glm::cross(Z, glm::cross(-N, BC))),
   };
 
   for (const auto &ax : axis) {
-    if (glm::length(ax) < EPSILON) continue;
+    if (glm::length(ax) < EPSILON)
+      continue;
 
     vec_t pt(glm::dot(A, ax), glm::dot(B, ax), glm::dot(C, ax));
     vec_t pb(glm::dot(X, ax), glm::dot(Y, ax), glm::dot(Z, ax));
@@ -58,30 +56,19 @@ bool Mesh::aabbTriangleHit(const aabb_t &mbb, const Triangle &tri) const {
 }
 
 bool Mesh::rayHit(const Ray &ray, vec_t &tuv, triangle_ptr &triangle) const {
-  print("------ in Mesh::rayHit ------[ \n");
   for (auto it = grid->begin(ray); it != grid->end(); ++it) {
-    print("cell [{}, {}, {}] size = {}\n", it.current[0], it.current[1],
-          it.current[2], it->size());
     if (it->empty()) {
       continue;
     }
-    print(
-        "------ begin collision tests in cell [{},{},{}] with {} triangles "
-        "------ [\n",
-        it.current[0], it.current[1], it.current[2], it->size());
     vec_t curr;
     bool hit = it->at(0)->rayHit(ray, tuv);
-    print("triangle 0, hit = {}\n", hit);
     tuv[0] = hit ? tuv[0] : MAX_SCALAR;
     for (size_t i = 1; i < it->size(); ++i) {
       const auto &tri = it->at(i);
       const bool currHit = tri->rayHit(ray, curr);
-      print("triangle {}, hit = {} \n", i, currHit);
       if (currHit) {
         // auto collisionIndex = grid->worldToGrid(ray.at(curr[0]));
         // if (glm::all(glm::equal(collisionIndex, it.current))) {
-        print("current t:{} <= last t:{}? {}\n", curr[0], tuv[0],
-              curr[0] <= tuv[0]);
         if (curr[0] <= tuv[0]) {
           tuv = curr;
           triangle = tri;
@@ -91,17 +78,10 @@ bool Mesh::rayHit(const Ray &ray, vec_t &tuv, triangle_ptr &triangle) const {
       }
       hit |= currHit;
     }
-    print(
-        "]------ end collision tests in cell [{},{},{}] with {} triangles, "
-        "collision found: {} "
-        "------\n",
-        it.current[0], it.current[1], it.current[2], it->size(), hit);
     if (hit) {
-      print("]------ out Mesh::rayHit ------\n");
       return true;
     }
   }
-  print("]------ out Mesh::rayHit ------\n");
   return false;
 }
 
@@ -147,6 +127,7 @@ bool Mesh::Loader::OBJ(const std::string &filename) {
   // vec_t minDiff = vec_t(MAX_SCALAR);
 
   print("meshes read = {}\n", shapes.size());
+  const size_t maxTriangles = 100;
   // Loop over shapes
   for (size_t s = 0; s < shapes.size(); s++) {
     // Loop over faces(polygon)
@@ -154,6 +135,8 @@ bool Mesh::Loader::OBJ(const std::string &filename) {
     print("triangles in shape[{}] = {}\n", s,
           shapes[s].mesh.num_face_vertices.size());
     for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
+      if (f >= maxTriangles)
+        break;
       size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
       vec_t vertices[fv];
 
@@ -170,8 +153,9 @@ bool Mesh::Loader::OBJ(const std::string &filename) {
         max = glm::max(vertices[v], max);
       }
       // CREATE THE TRIANGLE
-      mesh->triangles.emplace_back(
-          std::make_shared<Triangle>(vertices[0], vertices[1], vertices[2]));
+      // mesh->triangles.emplace_back(std::make_shared<Triangle>(vertices[0],
+      // vertices[1], vertices[2]));
+      mesh->triangles.emplace_back(vertices[0], vertices[1], vertices[2]);
       //      minDiff = glm::min(glm::min(glm::abs(vertices[0] - vertices[1]),
       //                                 glm::abs(vertices[1] - vertices[2])),
       //                        glm::abs(vertices[0] - vertices[2]));
@@ -179,12 +163,12 @@ bool Mesh::Loader::OBJ(const std::string &filename) {
     }
   }
   // init grid
-  mesh->grid = std::make_shared<grid_t>(min, max, grid_t::index_t(4));
+  mesh->grid = std::make_shared<grid_t>(min, max, grid_t::index_t(1));
   // mesh->grid = std::make_shared<grid_t>(min, max, grid_t::index_t(32));
 
   // index the triangles
   for (size_t i = 0; i < mesh->triangles.size(); i++) {
-    mesh->voxelize(mesh->triangles[i]);
+    mesh->voxelize(&(mesh->triangles[i]));
   }
   size_t counter = 0;
   for (size_t i = 0; i < mesh->grid->dimensions[0]; ++i) {
@@ -194,9 +178,10 @@ bool Mesh::Loader::OBJ(const std::string &filename) {
       }
     }
   }
-  print("triangles in grid = {}\n", counter);
+  print("triangles indexed in grid = {}\n", counter);
+  print("triangles loaded to mesh = {}\n", mesh->triangles.size());
 
   return true;
 }
 const typename Mesh::mesh_ptr Mesh::Loader::getMesh() const { return mesh; }
-}  // namespace war
+} // namespace war

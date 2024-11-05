@@ -9,11 +9,13 @@
 namespace war {
 class Mesh {
 public:
-  typedef std::shared_ptr<Triangle> triangle_ptr;
+  // typedef std::shared_ptr<Triangle> triangle_ptr;
+  typedef Triangle *triangle_ptr;
   typedef Grid<triangle_ptr> grid_t;
   typedef grid_t::index_t index_t;
   typedef std::shared_ptr<grid_t> grid_ptr;
-  typedef std::vector<triangle_ptr> triangle_set;
+  // typedef std::vector<triangle_ptr> triangle_set;
+  typedef std::vector<Triangle> triangle_set;
   typedef std::shared_ptr<Mesh> mesh_ptr;
 
   void voxelize(triangle_ptr tri);

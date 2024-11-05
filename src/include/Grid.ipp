@@ -6,10 +6,7 @@ namespace war {
 
 template <class T>
 Grid<T>::Grid(const point_t &min, const point_t &max, const index_t &dimensions)
-    : min(min),
-      max(max),
-      dimensions(dimensions),
-      size(max - min),
+    : min(min), max(max), dimensions(dimensions), size(max - min),
       boxSize((max - min) / vec_t(dimensions)) {
   print("grid MBB : min = [{}, {}, {}], max = [{}, {}, {}]\n", min[0], min[1],
         min[2], max[0], max[1], max[2]);
@@ -27,8 +24,7 @@ typename Grid<T>::bucket_t &Grid<T>::operator[](const index_t &i) const {
   return data[i1d];
 }
 
-template <class T>
-bool Grid<T>::rayHit(const Ray &ray, scalar_t &t) const {
+template <class T> bool Grid<T>::rayHit(const Ray &ray, scalar_t &t) const {
   // check if ray origin is inside the grid
   if (glm::all(glm::greaterThanEqual(ray.O, min)) &&
       glm::all(glm::lessThanEqual(ray.O, max))) {
@@ -53,8 +49,7 @@ typename Grid<T>::Iterator Grid<T>::begin(const Ray &ray) const {
   return Iterator(const_cast<Grid<T> *>(this), ray);
 }
 
-template <class T>
-typename Grid<T>::Iterator Grid<T>::end() const {
+template <class T> typename Grid<T>::Iterator Grid<T>::end() const {
   return Iterator(nullptr, index_t(MAX_INDEX));
 }
 
@@ -67,8 +62,7 @@ typename Grid<T>::index_t Grid<T>::worldToGrid(const point_t &p) const {
   return {size_t(wi.x), size_t(wi.y), size_t(wi.z)};
   // return vec_t(dimensions)*(p-min)/size;
 }
-template <class T>
-aabb_t Grid<T>::getAABB(const index_t &i) const {
+template <class T> aabb_t Grid<T>::getAABB(const index_t &i) const {
   return {min + vec_t(i) * boxSize, min + vec_t(i + index_t(1)) * boxSize};
 }
 
@@ -89,17 +83,11 @@ Grid<T>::Iterator::Iterator(Grid<T> *g, const Ray &ray) : grid(g) {
   D = ray.D;
   step = glm::sign(D);
   abstep = glm::abs(step);
-  print("------ in iteratior constructor ------\n");
-  print("starting point = [{}, {}, {}]\n", p.x, p.y, p.z);
-  print("starting cell = [{}, {}, {}]\n", current.x, current.y, current.z);
-  print("ray direction = [{}, {}, {}]\n", D.x, D.y, D.z);
-  print("iterator step = [{}, {}, {}]\n", step.x, step.y, step.z);
-  print("------ out iteratior constructor ------\n");
 }
 
-template <class T>
-typename Grid<T>::Iterator &Grid<T>::Iterator::operator++() {
-  if (!grid) return *this;
+template <class T> typename Grid<T>::Iterator &Grid<T>::Iterator::operator++() {
+  if (!grid)
+    return *this;
   const aabb_t box = grid->getAABB(current);
   const point_t pivot = vec_t(abstep) * box.max + vec_t(-abstep + 1) * box.min;
 
@@ -116,12 +104,6 @@ typename Grid<T>::Iterator &Grid<T>::Iterator::operator++() {
     grid = nullptr;
     current = index_t(MAX_INDEX);
   }
-  print("------ in iteratior++ ------\n");
-  print("point = [{}, {}, {}]\n", p.x, p.y, p.z);
-  print("cell = [{}, {}, {}]\n", current.x, current.y, current.z);
-  print("ray direction = [{}, {}, {}]\n", D.x, D.y, D.z);
-  print("iterator step = [{}, {}, {}]\n", step.x, step.y, step.z);
-  print("------ out iteratior++ ------\n");
   return *this;
 }
 
@@ -148,4 +130,4 @@ template <class T>
 const typename Grid<T>::index_t Grid<T>::Iterator::getIndex() const {
   return current;
 }
-};  // namespace war
+}; // namespace war

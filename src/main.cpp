@@ -13,7 +13,7 @@ int main() {
   Ray cameraRay(point_t(-0.02, 0.11, -0.5), vec_t(0.0, 0.0, 1.0));
   // Renderer renderer(Canvas(1024, 1024), Camera(cameraRay, 0.4, 0.15, 0.15,
   // 0.0),Scene());
-  Renderer renderer(Canvas(32, 32), Camera(cameraRay, 0.4, 0.15, 0.15, 0.0),
+  Renderer renderer(Canvas(256, 256), Camera(cameraRay, 0.4, 0.15, 0.15, 15.0),
                     Scene());
   renderer.scene.addMesh(load.getMesh());
   renderer.render();
