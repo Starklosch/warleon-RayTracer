@@ -127,7 +127,7 @@ bool Mesh::Loader::OBJ(const std::string &filename) {
   // vec_t minDiff = vec_t(MAX_SCALAR);
 
   print("meshes read = {}\n", shapes.size());
-  const size_t maxTriangles = 100;
+  //const size_t maxTriangles = 100;
   // Loop over shapes
   for (size_t s = 0; s < shapes.size(); s++) {
     // Loop over faces(polygon)
@@ -135,8 +135,8 @@ bool Mesh::Loader::OBJ(const std::string &filename) {
     print("triangles in shape[{}] = {}\n", s,
           shapes[s].mesh.num_face_vertices.size());
     for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
-      if (f >= maxTriangles)
-        break;
+   //   if (f >= maxTriangles)
+   //     break;
       size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
       vec_t vertices[fv];
 
@@ -163,7 +163,7 @@ bool Mesh::Loader::OBJ(const std::string &filename) {
     }
   }
   // init grid
-  mesh->grid = std::make_shared<grid_t>(min, max, grid_t::index_t(1));
+  mesh->grid = std::make_shared<grid_t>(min, max, grid_t::index_t(4));
   // mesh->grid = std::make_shared<grid_t>(min, max, grid_t::index_t(32));
 
   // index the triangles
