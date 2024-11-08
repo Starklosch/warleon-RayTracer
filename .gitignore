@@ -1,2 +1,7 @@
 build*
 .vscode
+
+
+!.vs/
+.vs/*
+!.vs/launch.vs.json

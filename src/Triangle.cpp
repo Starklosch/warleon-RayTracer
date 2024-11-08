@@ -1,3 +1,5 @@
+#include <iostream>
+#include <glm/gtx/string_cast.hpp>
 #include <Triangle.hpp>
 namespace war {
 
@@ -32,6 +34,8 @@ bool Triangle::rayHit(Ray ray, vec_t &tuv) const {
 
   t = glm::dot(AC, Q) * idet;
   if (t > EPSILON) {
+	  //glm::vec3 center = (A + AB + AC) / 3.f;
+   //   std::cout << "ray hit " << glm::to_string(ray.D) << " with triangle " << glm::to_string(center);
     return true;
   }
 

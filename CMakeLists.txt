@@ -1,12 +1,19 @@
-cmake_minimum_required(VERSION 3.30)
+cmake_minimum_required(VERSION 3.20)
 
-project(ray_tracer_rederer CXX)
+project(ray_tracer_rederer CXX C)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR})
 message("CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
 message("COMPILER = ${CMAKE_CXX_COMPILER_ID}")
+
+cmake_policy(SET CMP0135 NEW)
+
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+add_subdirectory(third_party/glfw)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -51,8 +58,9 @@ target_include_directories(stb_image_write INTERFACE third_party/include/stb_ima
 file(GLOB_RECURSE SOURCES "src/**.[ic]pp")
 list(REMOVE_ITEM SOURCES "${CMAKE_SOURCE_DIR}/src/main.cpp")
 message("SOURCE FILES = ${SOURCES}")
-add_executable(rayTracer src/main.cpp ${SOURCES})
-target_compile_options(rayTracer PRIVATE -Wall -Wextra)
+add_executable(rayTracer src/main.cpp glad.c ${SOURCES})
+target_compile_options(rayTracer PRIVATE -Wall)
+target_include_directories(rayTracer PUBLIC include)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	target_compile_options(rayTracer PRIVATE -fsanitize=address)
 	target_link_libraries(rayTracer PRIVATE -fsanitize=address)
@@ -62,6 +70,7 @@ target_link_libraries(rayTracer PRIVATE stb_image_write)
 target_link_libraries(rayTracer PRIVATE glm)
 target_link_libraries(rayTracer PRIVATE tinyobjloader)
 target_link_libraries(rayTracer PRIVATE fmt::fmt)
+target_link_libraries(rayTracer PRIVATE glfw)
 
 install(TARGETS rayTracer DESTINATION dist)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/data DESTINATION dist)

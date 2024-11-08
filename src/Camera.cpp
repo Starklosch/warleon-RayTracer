@@ -22,7 +22,7 @@ void Camera::initCameraAxes() {
 
 Ray Camera::getRayFromViewportCoordinates(scalar_t x, scalar_t y) const {
   vec_t center = ray.O + distance * ray.D;
-  vec_t target = center + (right * x * width / 2.0) + (up * y * height / 2.0);
+  vec_t target = center + (right * x * width / 2.0f) + (up * y * height / 2.0f);
   return Ray(ray.O, target - ray.O);
 }
 

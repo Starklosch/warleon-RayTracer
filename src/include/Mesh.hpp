@@ -7,36 +7,35 @@
 #include <vector>
 
 namespace war {
-class Mesh {
-public:
-  // typedef std::shared_ptr<Triangle> triangle_ptr;
-  typedef Triangle *triangle_ptr;
-  typedef Grid<triangle_ptr> grid_t;
-  typedef grid_t::index_t index_t;
-  typedef std::shared_ptr<grid_t> grid_ptr;
-  // typedef std::vector<triangle_ptr> triangle_set;
-  typedef std::vector<Triangle> triangle_set;
-  typedef std::shared_ptr<Mesh> mesh_ptr;
+	class Mesh;
 
-  void voxelize(triangle_ptr tri);
-  bool aabbTriangleHit(const aabb_t &mbb, const Triangle &tri) const;
+	using mesh_ptr = std::shared_ptr<Mesh>;
+	using triangle_set = std::vector<Triangle>;
+	using grid_t = Grid<triangle_ptr>;
+	using grid_ptr = std::shared_ptr<grid_t>;
 
-public:
-  Mesh();
-  const grid_ptr getGrid() const;
+	class Mesh {
+	public:
 
-  class Loader {
-    mesh_ptr mesh;
+		void voxelize(triangle_ptr tri);
+		bool aabbTriangleHit(const aabb_t& mbb, const Triangle& tri) const;
 
-  public:
-    Loader();
-    bool OBJ(const std::string &filename);
-    const mesh_ptr getMesh() const;
-  };
-  bool rayHit(const Ray &ray, vec_t &tuv, triangle_ptr &tri) const;
+	public:
+		Mesh();
+		const grid_ptr getGrid() const;
 
-private:
-  grid_ptr grid;
-  triangle_set triangles;
-};
+		class Loader {
+			mesh_ptr mesh;
+
+		public:
+			Loader();
+			bool OBJ(const std::string& filename);
+			const mesh_ptr getMesh() const;
+		};
+		bool rayHit(const Ray& ray, vec_t& tuv, triangle_ptr& tri) const;
+
+		triangle_set triangles;
+	private:
+		grid_ptr grid;
+	};
 } // namespace war

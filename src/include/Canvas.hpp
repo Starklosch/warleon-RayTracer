@@ -18,6 +18,10 @@ public:
   void exportImage(const std::string &filename) const;
   coord2d_t getNormalizedCoordinates(size_t x, size_t y) const;
 
+  inline const unsigned char* data() const {
+	  return rgbaMatrix.data();
+  }
+
 private:
   mutable std::vector<unsigned char> rgbaMatrix;
 };
